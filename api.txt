@@ -1,0 +1,138 @@
+Airport Arrival/Depature schedule
+
+Табло расписаний отправки и прибытия самолетов в аэропорту.
+Выбран рест. Сервис не предполагает запуск каких-либо вычислений, происходит лишь обмен состояний - то есть ресурсы, такие как информация о аэропорте, вылете и т.д. Использование в идеале: обычные юзеры получают информацию о вылетах и прилетах. Админы эту информацию могут изменять и создавать. Так как сервис простой, никакой аутентификации не будет.
+
+API
+Все поля ниже - текстовые, если не оговорено.
+В каждом ресурсе есть baseUrl - чтобы вернуться на дом страницу.
+Везде Accepts application/json
+
+/airports/ - список аэропортов. в списке лишь необходимая информация для отображания в списке. GET.
+{
+	airports: [
+				{
+				  id: lax
+				  name: Los Angeles International airport
+				  airportUrl:{baseUrl}airports/{airportId} //ссылка на ресурс
+				}
+			  ]
+	baseUrl:https//blabla.com/
+}
+airports/{airportId}/ Информация о конкретном аэропорте. GET - получить, POST - изменить, добавить, DELETE - удалить. airportId является уникальным и известным заранее. Взят из предметной области (IATA) . Например, JFK - национальный  имени Джона Кеннеди в Нью-Йорке
+{
+	id:lax,
+	airportName: Los Angeles International airport
+	image: {urlToImage},
+	description: some description,
+	airportUTC:+0100
+	departuresUrl: {baseUrl}departures/airports/{airportId},//ссылка на список отправлений
+	arrivalsUrl: {baseUrl}arrivals/airports/{airportId},//ссылка на список прибытий
+	baseUrl:https//blabla.com/
+}
+
+
+/departures/airports/{airportId}/[{date}] список вылетов из конкретного аэропорта. День - опциональный параметр {date}  - задан в формате количества секунд с 1 января 1970. По умолчанию берется текущий день временного пояса аэропорта. GET
+{
+	departures: [
+					{
+						flightId: kl1477c4,
+						time: 2011-07-14T19:43:37+0100 // utc формат
+						location: {
+									terminal: T1
+									gate: B42
+								  }
+                     	flightUrl:{baseUrl}departures/flights/{flightId} //ссылка на конкретное отправление
+						
+					}
+	]
+	date:2011-07-14T00:00:00+0100 //utc формат
+	baseUrl:https//blabla.com/,
+}
+/departures/flights/{flightId} Конкретное отправление. GET - получить, POST - изменить, DELETE - удалить.
+{
+	id: kl1477c4,
+	time: 2011-07-14T19:43:37+0100 // utc формат
+	airportId: AMS
+	company: KLM // лучше id компании,но для простоты будет название
+	aircraft: Airbus A320
+	location: {
+				terminal: T1
+				gate: B42
+			  }
+	arrivalUrl: {baseUrl}arrivals/flights/{flightId}
+	baseUrl:https//blabla.com/,
+}
+
+/arrivals/airports/{airportId}/[{date}] список прибытий в конкретный аэропорт. День - опциональный параметр {date}  - задан в формате количества секунд с 1 января 1970. По умолчанию берется текущий день временного пояса аэропорта. GET
+{
+	arrivals: [
+					{
+						flightId: kl1477c4,
+						time: 2011-07-14T19:43:37+0100 // utc формат
+						location: {
+									terminal: T1
+									gate: B42
+								  }
+                     	flightUrl:{baseUrl}arrivals/flights/{flightId} //ссылка на конкретное прибытие
+						
+					}
+	]
+	date:2011-07-14T00:00:00+0100 //utc формат
+	baseUrl:https//blabla.com/,
+}
+/arrivals/flights/{flightId} Конкретное прибытие. GET - получить, POST - изменить, DELETE - удалить.
+{
+	id: kl1477c4,
+	time: 2011-07-14T19:43:37+0100 // utc формат
+	airportId: AMS
+	company: KLM // лучше id компании,но для простоты будет название
+	aircraft: Airbus A320
+	location: {
+				terminal: T1
+				gate: B42
+			  }
+	departureUrl: {baseUrl}departures/flights/{flightId}
+	baseUrl:https//blabla.com/,
+}
+
+/flights/add/{flightInternationalId} POST - добавить. При добавлении нового полета нужно указать лишь нормер рейса в международном формате. Например, kl1477. Сиситема добавит к этому рейсу c{number} - счетчик для уникальности. Например, получится kl1477c4. 
+Отправит
+{
+	internationalId: kl1477,
+	departureTime: 2011-07-14T19:43:37+0100 // utc формат
+	arrivalTime: 2011-07-14T21:43:37+0100 // utc формат
+	departureAirportId: AMS
+	arrivalAirportId: STN
+	company: KLM // лучше id компании,но для простоты будет название
+	aircraft: Airbus A320
+	departureLocation: {
+				terminal: T1
+				gate: B42
+			  }
+	arrivalLocation: {
+				terminal: T1
+				gate: B42
+			  }
+}
+Вернет
+{
+	id: kl1477c4,
+	departureTime: 2011-07-14T19:43:37+0100 // utc формат
+	arrivalTime: 2011-07-14T21:43:37+0100 // utc формат
+	depateuteAirportId: AMS
+	arrivalAirportId: STN
+	company: KLM // лучше id компании,но для простоты будет название
+	aircraft: Airbus A320
+	departureLocation: {
+				terminal: T1
+				gate: B42
+			  }
+	arrivalLocation: {
+				terminal: T1
+				gate: B42
+			  }
+	departureUrl: {baseUrl}departures/flights/{flightId}
+	arrivalUrl: {baseUrl}arrivals/flights/{flightId}
+	baseUrl:https//blabla.com/,
+}
